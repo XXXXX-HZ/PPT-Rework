@@ -49,9 +49,10 @@
 | `scripts/smell.py` | 自动扫 AI 痕迹并打分（输入/输出对比，分数必须降） |
 | `scripts/layout_check.py` | 出血、溢出、边距违规检查（无 LibreOffice 时的替代方案） |
 
-`smell.py` 检测 20 类痕迹：标题装饰横线、通栏色条、彩色圆底图标、emoji、
+`smell.py` 检测 21 类痕迹：标题装饰横线、通栏色条、彩色圆底图标、emoji、
 通用 SaaS 蓝、投影、正文居中、主题标签当标题、每页恰好三条、空洞词、
-**数字无出处**、无局限页、以「谢谢」结尾、纯白底、纯黑字、全大写、标题超尺寸……
+**数字无出处**、无局限页、以「谢谢」结尾、纯白底、纯黑字、全大写、标题超尺寸，
+以及 **`C3` 版式单调**——逐页看永远发现不了、只有把版式序列排出来才暴露的那类问题。
 
 它对封面和分节页做分类豁免——那些页本来就该有短标题和大字。
 
@@ -120,6 +121,7 @@ pptx-rework/
 ├── references/
 │   ├── house-style.md            ★ 最高权威：输出规范（色值/字阶/边距/禁用清单）
 │   ├── ai-tells.md               22 条 AI 痕迹：现象 → 为什么 → 改法
+│   ├── polish-patterns.md        打磨模式的具体手法（模式 A 主力文件）
 │   ├── design-system.md          house-style 的 pptxgenjs 实现（token/参数）
 │   └── layouts.md                版式目录，带实测坐标
 └── scripts/
@@ -150,6 +152,7 @@ house-style.md > SKILL.md > design-system.md / layouts.md > 内置 pptx skill
 | [hugohe3/ppt-master](https://github.com/hugohe3/ppt-master) | 原生可编辑 PPTX 优先；Beautify 作为独立路由；一个 motif 按页面职责变奏 |
 | [lewislulu/html-ppt-skill](https://github.com/lewislulu/html-ppt-skill) | 版式目录化——按页面职责选版式，而不是全篇套一个 |
 | [Gabberflast/academic-pptx-skill](https://github.com/Gabberflast/academic-pptx-skill) | action title；ghost deck 测试；一页一个 exhibit |
+| `analyst-deck-polisher`（基于同一套 house-style 的独立实现） | 「一眼落点」单页自检；报告页→幻灯页的五步手法；证据层级（before/after 都要标）；版式节奏反模式；双图反转必须标注 |
 
 技术实现依赖 Anthropic 内置的 `pptx` skill（pptxgenjs API、OOXML 编辑、文件校验）。
 

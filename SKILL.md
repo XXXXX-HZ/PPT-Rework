@@ -149,7 +149,12 @@ house-style §8：证据不足就保持描述性中性标题，**不要为了显
 
 ### Step 3 · 内容编辑
 
-house-style §25 的 Do 清单 + §27/§28 的文字规则。`ai-tells.md` 给每条的检测方法。
+house-style §25 的 Do 清单 + §27/§28 的文字规则。
+**具体手法读 [`polish-patterns.md`](references/polish-patterns.md)** —— 模式 A 的主力文件。
+`ai-tells.md` 给每条痕迹的检测方法。
+
+先过 polish-patterns §0 的单页自检：
+**观众第一眼落在哪里？是不是标题所声称的那个证据？** 不是就重做这一页的视觉焦点。
 
 - **标题写成结论**（§8）。「D1 Retention」→「Tutorial completers retain better on D1」。
   **但证据不足就保持描述性中性标题**——准确比听起来有洞察重要。不要为了写出 action title 而编结论。
@@ -190,10 +195,14 @@ house-style §25 的 Do 清单 + §27/§28 的文字规则。`ai-tells.md` 给�
 
 ```bash
 python <pptx-skill>/scripts/office/validate.py out.pptx   # 文件结构（必跑）
-python scripts/layout_check.py out.pptx                   # 溢出 / 出血 / 重叠
-python scripts/smell.py out.pptx                          # 回归扫描：AI 痕迹是否真的清掉了
+python scripts/layout_check.py out.pptx                   # 溢出 / 出血 / 边距
+python scripts/smell.py out.pptx --verbose                # AI 痕迹 + 版式节奏（C3）
 markitdown out.pptx | grep -iE "lorem|ipsum|TODO|\[insert|xxx"
 ```
+
+**`C3 版式单调` 必须为 0。** 这一条逐页看永远发现不了——每页单独都合格，
+只有把版式序列排出来才暴露。判据见 polish-patterns §4：
+同一签名 > 40% 的页 / 连续 ≥3 页相同 / 所有页都以长段落收尾。
 
 有 soffice 就渲染成图**逐页看**：
 

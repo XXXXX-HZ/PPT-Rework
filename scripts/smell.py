@@ -120,11 +120,49 @@ def slide_bg_hex(slide):
     return None
 
 
+def layout_signature(shapes):
+    """Coarse per-slide layout fingerprint: which kinds of object, how many.
+
+    Deliberately coarse — the point is to catch a deck where most pages repeat
+    one shape, not to describe any page precisely. Footnotes and page numbers
+    are excluded so they do not mask a difference.
+    """
+    kinds = []
+    for sh in shapes:
+        try:
+            if sh.has_table:
+                kinds.append("TABLE"); continue
+            if getattr(sh, "has_chart", False):
+                kinds.append("CHART"); continue
+            if sh.__class__.__name__ == "Picture":
+                kinds.append("IMG"); continue
+            if sh.has_text_frame and sh.text_frame.text.strip():
+                y = (sh.top or 0) / EMU
+                t = sh.text_frame.text.strip()
+                if y < 1.5:
+                    kinds.append("TITLE")
+                elif y > 6.7:
+                    continue                      # footnote / page number
+                elif len(t) > 110:
+                    kinds.append("PARA")
+        except Exception:
+            pass
+    out = []
+    for k in ("TITLE", "TABLE", "CHART", "IMG", "PARA"):
+        n = kinds.count(k)
+        if n == 1:
+            out.append(k)
+        elif n > 1:
+            out.append(f"{k}x{n}")
+    return "+".join(out)
+
+
 def analyse(path):
     prs = Presentation(path)
     SW = prs.slide_width / EMU
     findings = []          # (code, slide_no, detail)
     para_counts = []
+    layout_sigs = []
     n_slides = len(prs.slides)
 
     for idx, slide in enumerate(prs.slides, start=1):
@@ -303,6 +341,28 @@ def analyse(path):
             findings.append(("B4", idx, "本页有数字但没有出处行"))
 
         para_counts.append(para_count)
+        layout_sigs.append(layout_signature(shapes))
+
+    # ---------- C3: layout monotony (polish-patterns.md §4) ----------
+    # Only visible when the sequence is laid out; every page can pass on its own
+    # and the deck still read as "title -> table -> paragraph -> footnote" x N.
+    real = [s for s in layout_sigs if s]
+    if len(real) >= 6:
+        counts = {}
+        for s in real:
+            counts[s] = counts.get(s, 0) + 1
+        top, n = max(counts.items(), key=lambda kv: kv[1])
+        if n / len(real) > 0.40:
+            findings.append(("C3", 0, f"{n}/{len(real)} 页版式相同（{top}）"))
+        run = best = 1
+        for a, b in zip(real, real[1:]):
+            run = run + 1 if a == b else 1
+            best = max(best, run)
+        if best >= 3:
+            findings.append(("C3", 0, f"连续 {best} 页版式相同"))
+        ends_para = sum(1 for s in real if s.endswith("PARA"))
+        if ends_para == len(real):
+            findings.append(("C3", 0, f"全部 {len(real)} 页都以长段落收尾"))
 
     # ---------- B2: the rule-of-three ----------
     body_pages = [c for c in para_counts if c > 0]
@@ -333,7 +393,7 @@ def analyse(path):
 
 WEIGHT = {"A1": 3, "A2": 3, "A3": 2, "A4": 3, "A5": 3, "A6": 2, "A8": 1, "A9": 2,
           "B1": 4, "B1?": 1, "B2": 3, "B3": 2, "B4": 3, "B5": 5, "B8": 4, "SZ": 2,
-          "HS1": 2, "HS2": 2, "HS3": 2, "HS4": 2}
+          "HS1": 2, "HS2": 2, "HS3": 2, "HS4": 2, "C3": 4}
 
 TITLES = {
     "A1": "标题装饰横线", "A2": "通栏/侧边色条", "A3": "彩色圆底图标",
@@ -342,6 +402,7 @@ TITLES = {
     "B2": "每页恰好三条", "B3": "空洞词", "B4": "数字无出处",
     "B5": "无局限/边界表述", "B8": "以谢谢/空白结尾", "SZ": "宽栏正文过小",
     "HS1": "纯黑文字", "HS2": "纯白底", "HS3": "全大写", "HS4": "标题超 30pt",
+    "C3": "版式单调",
 }
 
 
