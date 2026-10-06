@@ -328,7 +328,12 @@ def analyse(path):
                 has_source = True   # a small low line is a source line by position
 
         # ---------- B1: label titles (content slides only) ----------
-        if title_text and not structural:
+        # house-style §34 *requires* the closing slide to be titled "Next steps"
+        # or "Discussion", so those two are exempt on the final slide only.
+        closing_ok = (idx == n_slides and
+                      re.match(r"^\s*(next\s*steps?|discussion|下一步|讨论)\s*$",
+                               (title_text or ""), re.I))
+        if title_text and not structural and not closing_ok:
             key = re.sub(r"[\s:：·\-—0-9.、]+", "", title_text).lower()
             if key in {re.sub(r"[\s:：·\-—0-9.、]+", "", x).lower() for x in LABEL_TITLES}:
                 findings.append(("B1", idx, f"主题标签标题「{title_text}」"))
