@@ -51,7 +51,12 @@ FILLER = [
     "leverage", "leveraging", "streamline", "streamlining", "robust",
     "comprehensive", "seamless", "holistic", "empower", "empowering",
     "synergy", "synergies", "cutting-edge", "state-of-the-art", "best-in-class",
-    "paradigm", "unlock", "unlocking", "game-chang", "revolutioniz",
+    "paradigm", "game-chang", "revolutioniz",
+    # Phrases, not bare words. "Unlocking" is a legitimate product noun in some
+    # domains (a game mode, a feature screen); matching the bare verb flagged it
+    # seven times in one real deck. Only the buzzword construction is a tell.
+    "unlock value", "unlocking value", "unlock the potential",
+    "unlocking potential", "unlock growth", "unlocking growth", "unlock insights",
     "赋能", "抓手", "闭环", "全方位", "多维度", "深度融合", "持续优化",
     "全面提升", "有效提升", "进一步加强", "夯实", "沉淀", "打法", "组合拳",
 ]
@@ -74,7 +79,11 @@ SOURCE_HINT = re.compile(
 LIMIT_HINT = re.compile(
     r"limitation|caveat|constraint|boundar|cannot say|can not say|not tested|"
     r"censor|assumption|directional|局限|边界|不能说明|说不了|注意事项|"
-    r"未做|未经|仅供参考|不代表|前提|取舍",
+    r"未做|未经|仅供参考|不代表|前提|取舍|"
+    # The commonest real form of a caveat is a statement about sample size,
+    # which rarely uses the word "limitation".
+    r"small(er)?\s+(sample|cell|group)|(sample|cell)\s+sizes?\s+(are|is)\s+small|"
+    r"larger\s+sample|样本(量|数)?\s*(小|偏小|不足)",
     re.I,
 )
 
@@ -183,7 +192,8 @@ def analyse(path):
                     sh.__class__.__name__ == "Picture":
                 has_exhibit = True
         structural = (bg is not None and is_dark(bg)) or \
-                     (text_shapes <= 4 and not has_exhibit)
+                     (text_shapes <= 4 and not has_exhibit) or \
+                     (idx == 1 and not has_exhibit)   # a cover carries big type
 
         # ---------- HS2: pure white ground (house-style §4) ----------
         # "Avoid pure white #FFFFFF as the dominant background unless required
